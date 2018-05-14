@@ -8,6 +8,11 @@ before_deploy:
 
 deploy:
   api_key:
-    secret: ${GITHUB_PAT}
+    secure: ${GITHUB_PAT}
   provider: releases
-  file: "${JAR_FILE}"
+  file:
+    - "${JAR_FILE}"
+  skip_cleanup: true
+  on:
+     repo: ashatch/skeleton-cli
+     tags: true
