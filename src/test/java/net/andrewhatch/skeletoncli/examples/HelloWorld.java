@@ -7,9 +7,7 @@ import java.util.function.Consumer;
 
 public class HelloWorld {
   public static void main(String[] args) throws ParseException {
-    Consumer<HelloWorldParameters> program = parameters -> {
-      System.out.println(parameters.getMessage());
-    };
+    Consumer<HelloWorldParameters> program = parameters -> System.out.println(parameters.getMessage());
 
     CliBuilder.from(args, HelloWorldParameters.class)
         .run(program);

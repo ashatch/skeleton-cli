@@ -11,14 +11,11 @@ public class CliBuilder<T> {
   private final Class<T> parametersClass;
   private String[] args;
 
-  public static <R> CliBuilder from(
-      final String[] args,
-      final Class<R> parametersClass
-  ) {
+  public static <R> CliBuilder<R> from(final String[] args, final Class<R> parametersClass) {
     return new CliBuilder<>(args, parametersClass);
   }
 
-  private CliBuilder(
+  public CliBuilder(
       final String[] args,
       final Class<T> parametersClass
   ) {
