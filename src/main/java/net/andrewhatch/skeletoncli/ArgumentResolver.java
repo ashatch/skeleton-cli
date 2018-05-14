@@ -1,5 +1,7 @@
 package net.andrewhatch.skeletoncli;
 
+import net.andrewhatch.skeletoncli.exceptions.InvalidCommandLineException;
+import net.andrewhatch.skeletoncli.exceptions.InvalidParametersClassException;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.cli.CommandLine;
@@ -13,37 +15,57 @@ import org.apache.commons.cli.ParseException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
+import java.util.Set;
 
 class ArgumentResolver<T> {
 
-  Optional<T> resolve(
-      final Class<T> parametersClass,
-      final String[] args
-  ) throws
-      IllegalAccessException,
-      InstantiationException,
-      InvocationTargetException,
-      NoSuchMethodException,
-      ParseException {
+  private final Class<T> parametersClass;
 
-    T requestObject = parametersClass.newInstance();
-    final Options options = optionsFor(requestObject);
+  ArgumentResolver(
+      final Class<T> parametersClass
+  ) {
+    this.parametersClass = parametersClass;
+  }
+
+  Optional<T> resolve(final String[] args) throws InvalidParametersClassException, InvalidCommandLineException {
+    try {
+      return resolveOrThrowException(args);
+    } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
+      throw new InvalidParametersClassException(e);
+    } catch (ParseException e) {
+      throw new InvalidCommandLineException(e);
+    }
+  }
+
+  private Optional<T> resolveOrThrowException(final String[] args)
+      throws IllegalAccessException, InstantiationException,
+      ParseException, InvocationTargetException, NoSuchMethodException {
+
+    final T requestObject = parametersClass.newInstance();
+    final Set<String> propertyNames = propertiesForParameters(requestObject);
+    final Options options = optionsFor(propertyNames);
 
     try {
       final CommandLineParser parser = new DefaultParser();
       final CommandLine commandLine = parser.parse(options, args);
 
-      new PropertyUtilsBean()
-          .describe(requestObject)
-          .keySet()
-          .forEach(key -> this.setProperty(requestObject, key, commandLine));
+      propertyNames.forEach(key ->
+          this.setProperty(requestObject, key, commandLine));
 
       return Optional.of(requestObject);
-    } catch (final MissingOptionException moe) {
+    } catch (MissingOptionException missingOptionException) {
       usage(options);
     }
 
     return Optional.empty();
+  }
+
+  private Set<String> propertiesForParameters(T requestObject)
+      throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+
+    return new PropertyUtilsBean()
+        .describe(requestObject)
+        .keySet();
   }
 
   private void usage(Options options) {
@@ -63,15 +85,10 @@ class ArgumentResolver<T> {
     }
   }
 
-  private Options optionsFor(final Object bean)
-      throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-
+  private Options optionsFor(final Set<String> propertyNames) {
     final Options options = new Options();
 
-    new PropertyUtilsBean()
-        .describe(bean)
-        .keySet()
-        .stream()
+    propertyNames.stream()
         .filter(key -> !"class".equals(key))
         .forEach(key -> this.addOptionForKey(options, key));
 

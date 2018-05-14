@@ -1,9 +1,5 @@
 package net.andrewhatch.skeletoncli;
 
-import org.apache.commons.cli.ParseException;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 public class CliBuilder<T> {
@@ -23,18 +19,9 @@ public class CliBuilder<T> {
     this.parametersClass = parametersClass;
   }
 
-  public void run(Consumer<T> requestConsumer) throws ParseException {
-    try {
-      Optional<T> request = new ArgumentResolver<T>()
-          .resolve(parametersClass, this.args);
-
-      request.ifPresent(requestConsumer);
-
-    } catch (InstantiationException
-        | IllegalAccessException
-        | InvocationTargetException
-        | NoSuchMethodException e) {
-      throw new RuntimeException(e);
-    }
+  public void run(Consumer<T> requestConsumer) {
+      new ArgumentResolver<>(parametersClass)
+          .resolve(this.args)
+          .ifPresent(requestConsumer);
   }
 }
