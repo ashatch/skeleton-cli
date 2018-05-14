@@ -7,5 +7,7 @@ before_deploy:
   - export JAR_FILE=$(ls target/skeleton-cli-*.jar)
 
 deploy:
+  api_key:
+    secret: ${GITHUB_PAT}
   provider: releases
   file: "${JAR_FILE}"
