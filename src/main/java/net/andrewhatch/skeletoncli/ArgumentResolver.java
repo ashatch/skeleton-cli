@@ -2,7 +2,14 @@ package net.andrewhatch.skeletoncli;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtilsBean;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
@@ -17,21 +24,21 @@ class ArgumentResolver<T> {
       InstantiationException,
       InvocationTargetException,
       NoSuchMethodException,
-      ParseException
-  {
-    T t = parametersClass.newInstance();
-    final Options options = optionsFor(t);
+      ParseException {
+
+    T requestObject = parametersClass.newInstance();
+    final Options options = optionsFor(requestObject);
 
     try {
       final CommandLineParser parser = new DefaultParser();
       final CommandLine commandLine = parser.parse(options, args);
 
       new PropertyUtilsBean()
-          .describe(t)
+          .describe(requestObject)
           .keySet()
-          .forEach(key -> this.setProperty(t, key, commandLine));
+          .forEach(key -> this.setProperty(requestObject, key, commandLine));
 
-      return Optional.of(t);
+      return Optional.of(requestObject);
     } catch (final MissingOptionException moe) {
       usage(options);
     }
@@ -45,20 +52,20 @@ class ArgumentResolver<T> {
   }
 
   private void setProperty(
-      final T t,
+      final T requestObject,
       final String key,
       final CommandLine commandLine
   ) {
     try {
-      BeanUtils.setProperty(t, key, commandLine.getOptionValue(key));
+      BeanUtils.setProperty(requestObject, key, commandLine.getOptionValue(key));
     } catch (IllegalAccessException | InvocationTargetException e) {
       throw new RuntimeException(e);
     }
   }
 
   private Options optionsFor(final Object bean)
-      throws IllegalAccessException, NoSuchMethodException, InvocationTargetException
-  {
+      throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+
     final Options options = new Options();
 
     new PropertyUtilsBean()
