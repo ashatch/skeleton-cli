@@ -16,7 +16,7 @@
         <repository>
             <id>bintray-ashatch-skeleton-cli</id>
             <name>ashatch-skeleton-cli</name>
-            <url>https://api.bintray.com/maven/ashatch/skeleton-cli/[PACKAGE_NAME]/;publish=1</url>
+            <url>https://api.bintray.com/maven/ashatch/skeleton-cli/skeleton-cli/;publish=1</url>
         </repository>
     </distributionManagement>
 

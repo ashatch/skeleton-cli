@@ -5,7 +5,7 @@
     <servers>
         <server>
             <id>bintray-ashatch-skeleton-cli</id>
-            <username>${env.BINTRAY_USER}</username>
+            <username>ashatch</username>
             <password>${env.BINTRAY_API_KEY}</password>
         </server>
     </servers>
