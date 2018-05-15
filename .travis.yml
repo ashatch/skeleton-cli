@@ -3,6 +3,10 @@ language: java
 jdk:
   - oraclejdk8
 
+before_deploy:
+  - "mvn -DskipTests package"
+  - export JAR_FILE=$(ls target/skeleton-cli-*.jar)
+
 after_success:
   - mvn deploy --settings settings.xml
 
@@ -11,3 +15,14 @@ branches:
     - master
       # Build tags that match this regex in addition to building the master branch.
     - /^skeleton-cli-[0-9]+\.[0-9]+\.[0-9]+/
+
+deploy:
+  api_key:
+    secure: ${GITHUB_PAT}
+  provider: releases
+  file:
+    - "${JAR_FILE}"
+  skip_cleanup: true
+  on:
+     repo: ashatch/skeleton-cli
+     tags: true
