@@ -2,6 +2,8 @@ package net.andrewhatch.skeletoncli;
 
 import org.junit.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -59,6 +61,30 @@ public class ArgumentResolverTest {
     assertThat(parameters.get().getDoubleType()).isEqualTo(doubleArgument);
   }
 
+  @Test
+  public void existing_path_parameter() {
+    final ArgumentResolver<PathParameters> resolver = new ArgumentResolver<>(PathParameters.class);
+    final String[] args = {
+        "--mustExist", "."
+    };
+
+    final Optional<PathParameters> parameters = resolver.resolve(args);
+    assertThat(parameters.isPresent()).isTrue();
+    assertThat(Files.exists(parameters.get().getMustExist())).isTrue();
+  }
+
+  @Test
+  public void missing_path_parameter() {
+    final ArgumentResolver<PathParameters> resolver = new ArgumentResolver<>(PathParameters.class);
+
+    final String[] args = {
+        "--mustExist", "this_directory_does_not_exist"
+    };
+
+    final Optional<PathParameters> parameters = resolver.resolve(args);
+    assertThat(parameters.isPresent()).isFalse();
+  }
+
   public static class NoParameters {
   }
 
@@ -101,6 +127,18 @@ public class ArgumentResolverTest {
 
     public void setDoubleType(double doubleType) {
       this.doubleType = doubleType;
+    }
+  }
+
+  public static class PathParameters {
+    private Path mustExist;
+
+    public Path getMustExist() {
+      return mustExist;
+    }
+
+    public void setMustExist(Path mustExist) {
+      this.mustExist = mustExist;
     }
   }
 }
