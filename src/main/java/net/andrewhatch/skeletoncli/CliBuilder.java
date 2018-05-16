@@ -1,5 +1,6 @@
 package net.andrewhatch.skeletoncli;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class CliBuilder<T> {
@@ -23,5 +24,10 @@ public class CliBuilder<T> {
       new ArgumentResolver<>(parametersClass)
           .resolve(this.args)
           .ifPresent(requestConsumer);
+  }
+
+  public Optional<T> parameters() {
+    return new ArgumentResolver<>(parametersClass)
+        .resolve(this.args);
   }
 }
