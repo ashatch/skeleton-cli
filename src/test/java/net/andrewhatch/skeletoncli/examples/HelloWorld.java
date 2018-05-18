@@ -9,6 +9,8 @@ public class HelloWorld {
   public static void main(String[] args) throws ParseException {
     Consumer<HelloWorldParameters> program = parameters -> System.out.println(parameters.getMessage());
 
+    System.out.println(CliBuilder.from(args, HelloWorldParameters.class).parameters());
+
     CliBuilder.from(args, HelloWorldParameters.class)
         .run(program);
   }

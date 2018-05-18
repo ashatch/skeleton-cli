@@ -2,33 +2,26 @@ package net.andrewhatch.skeletoncli;
 
 import net.andrewhatch.skeletoncli.exceptions.InvalidCommandLineException;
 import net.andrewhatch.skeletoncli.exceptions.InvalidParametersClassException;
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.PropertyUtils;
+import net.andrewhatch.skeletoncli.options.OptionMaker;
+
 import org.apache.commons.beanutils.PropertyUtilsBean;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.MissingOptionException;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.omg.CORBA.DynAnyPackage.Invalid;
 
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 class ArgumentResolver<T> {
 
   private final Class<T> parametersClass;
 
-  ArgumentResolver(
-      final Class<T> parametersClass
-  ) {
+  ArgumentResolver(final Class<T> parametersClass) {
     this.parametersClass = parametersClass;
   }
 
@@ -47,17 +40,14 @@ class ArgumentResolver<T> {
       ParseException, InvocationTargetException, NoSuchMethodException {
 
     final T requestObject = parametersClass.newInstance();
-    final Set<String> propertyNames = propertiesForParameters(requestObject);
-    final Options options = optionsFor(propertyNames);
+    final Set<PropertyDescriptor> propertyDescriptors = propertiesForParameters(requestObject);
+
+    final Options options = OptionMaker.optionsFor(propertyDescriptors);
 
     try {
-      final CommandLineParser parser = new DefaultParser();
-      final CommandLine commandLine = parser.parse(options, args);
-
-      propertyNames.forEach(key ->
-          this.setProperty(requestObject, key, commandLine));
-
+      new ArgumentPopulator<>().populateBean(requestObject, propertyDescriptors, options, args);
       return Optional.of(requestObject);
+
     } catch (MissingOptionException missingOptionException) {
       usage(options);
     } catch (InvalidCommandLineException ice) {
@@ -67,12 +57,10 @@ class ArgumentResolver<T> {
     return Optional.empty();
   }
 
-  private Set<String> propertiesForParameters(T requestObject)
+  private Set<PropertyDescriptor> propertiesForParameters(T requestObject)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-
-    return new PropertyUtilsBean()
-        .describe(requestObject)
-        .keySet();
+    return Arrays.stream(new PropertyUtilsBean().getPropertyDescriptors(requestObject))
+      .collect(Collectors.toSet());
   }
 
   private void usage(Options options) {
@@ -89,56 +77,5 @@ class ArgumentResolver<T> {
     formatter.printHelp( "cmd", header, options, "");
   }
 
-  private void setProperty(
-      final T requestObject,
-      final String key,
-      final CommandLine commandLine
-  ) {
-    try {
-      final Class<?> propertyType = PropertyUtils.getPropertyType(requestObject, key);
-      if (Path.class.equals(propertyType)) {
-        resolvePathArgument(requestObject, key, commandLine);
-      } else {
-        BeanUtils.setProperty(requestObject, key, commandLine.getOptionValue(key));
-      }
-    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-      throw new RuntimeException(e);
-    }
-  }
 
-  private void resolvePathArgument(
-      T requestObject,
-      String key,
-      CommandLine commandLine
-  ) throws IllegalAccessException, InvocationTargetException {
-
-    final Path argumentPath = Paths.get(commandLine.getOptionValue(key));
-    if (!Files.exists(argumentPath)) {
-      throw new InvalidCommandLineException(
-          String.format("Path \"%s\" must exist", String.valueOf(argumentPath)));
-    }
-    BeanUtils.setProperty(requestObject, key, argumentPath);
-  }
-
-  private Options optionsFor(final Set<String> propertyNames) {
-    final Options options = new Options();
-
-    propertyNames.stream()
-        .filter(key -> !"class".equals(key))
-        .forEach(key -> this.addOptionForKey(options, key));
-
-    return options;
-  }
-
-  private void addOptionForKey(
-      final Options options,
-      final String key
-  ) {
-    options.addOption(
-        Option.builder()
-            .longOpt(key)
-            .hasArg(true)
-            .required()
-            .build());
-  }
 }

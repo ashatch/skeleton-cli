@@ -12,7 +12,7 @@ public class CliBuilder<T> {
     return new CliBuilder<>(args, parametersClass);
   }
 
-  public CliBuilder(
+  private CliBuilder(
       final String[] args,
       final Class<T> parametersClass
   ) {
@@ -20,10 +20,10 @@ public class CliBuilder<T> {
     this.parametersClass = parametersClass;
   }
 
-  public void run(Consumer<T> requestConsumer) {
-      new ArgumentResolver<>(parametersClass)
-          .resolve(this.args)
-          .ifPresent(requestConsumer);
+  public void run(final Consumer<T> requestConsumer) {
+    new ArgumentResolver<>(parametersClass)
+        .resolve(this.args)
+        .ifPresent(requestConsumer);
   }
 
   public Optional<T> parameters() {

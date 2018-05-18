@@ -1,50 +1,57 @@
 package net.andrewhatch.skeletoncli;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
+import net.andrewhatch.skeletoncli.models.BooleanSwitchParameter;
+import net.andrewhatch.skeletoncli.models.NoParameters;
+import net.andrewhatch.skeletoncli.models.OneOrTheOther;
+import net.andrewhatch.skeletoncli.models.ParametersNumericTypes;
+import net.andrewhatch.skeletoncli.models.PathParameters;
+import net.andrewhatch.skeletoncli.models.SingleStringParameter;
+
 import org.junit.Test;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class ArgumentResolverTest {
 
   @Test
   public void no_parameters() {
-
     final ArgumentResolver<NoParameters> resolver = new ArgumentResolver<>(NoParameters.class);
     final String[] args = {};
 
-    assertThat(resolver.resolve(args).isPresent()).isTrue();
+    assertThat(resolver.resolve(args)).isPresent();
   }
 
   @Test
   public void string_parameter_resolved() {
-
     final ArgumentResolver<SingleStringParameter> resolver = new ArgumentResolver<>(SingleStringParameter.class);
+
     final String message = "antidisestablishmentarianism";
     final String[] args = {
         "--message", message
     };
-
     Optional<SingleStringParameter> parameters = resolver.resolve(args);
-    assertThat(parameters.isPresent()).isTrue();
+
+    assertThat(parameters).isPresent();
     assertThat(parameters.get().getMessage()).isEqualTo(message);
   }
 
   @Test
   public void string_parameter_not_resolved() {
     final ArgumentResolver<SingleStringParameter> resolver = new ArgumentResolver<>(SingleStringParameter.class);
+
     final String[] args = {};
 
     Optional<SingleStringParameter> parameters = resolver.resolve(args);
-    assertThat(parameters.isPresent()).isFalse();
+    assertThat(parameters).isNotPresent();
   }
 
   @Test
   public void numeric_parameters() {
     final ArgumentResolver<ParametersNumericTypes> resolver = new ArgumentResolver<>(ParametersNumericTypes.class);
+
     int integerArgument = 314159;
     float floatArgument = 3.14159f;
     double doubleArgument = 3.141;
@@ -55,7 +62,7 @@ public class ArgumentResolverTest {
     };
 
     Optional<ParametersNumericTypes> parameters = resolver.resolve(args);
-    assertThat(parameters.isPresent()).isTrue();
+    assertThat(parameters).isPresent();
     assertThat(parameters.get().getInteger()).isEqualTo(integerArgument);
     assertThat(parameters.get().getFloatType()).isEqualTo(floatArgument);
     assertThat(parameters.get().getDoubleType()).isEqualTo(doubleArgument);
@@ -64,12 +71,13 @@ public class ArgumentResolverTest {
   @Test
   public void existing_path_parameter() {
     final ArgumentResolver<PathParameters> resolver = new ArgumentResolver<>(PathParameters.class);
+
     final String[] args = {
         "--mustExist", "."
     };
 
     final Optional<PathParameters> parameters = resolver.resolve(args);
-    assertThat(parameters.isPresent()).isTrue();
+    assertThat(parameters).isPresent();
     assertThat(Files.exists(parameters.get().getMustExist())).isTrue();
   }
 
@@ -82,63 +90,51 @@ public class ArgumentResolverTest {
     };
 
     final Optional<PathParameters> parameters = resolver.resolve(args);
-    assertThat(parameters.isPresent()).isFalse();
+    assertThat(parameters).isNotPresent();
   }
 
-  public static class NoParameters {
+  @Test
+  public void boolean_switch() {
+    final ArgumentResolver<BooleanSwitchParameter> resolver = new ArgumentResolver<>(BooleanSwitchParameter.class);
+
+    final String[] argsOn = {
+        "--on"
+    };
+
+    final Optional<BooleanSwitchParameter> paramsOn = resolver.resolve(argsOn);
+    assertThat(paramsOn).isPresent();
+    assertThat(paramsOn.get().isOn()).isTrue();
+
+    final String[] argsOff = {};
+
+    final Optional<BooleanSwitchParameter> paramsOff = resolver.resolve(argsOff);
+    assertThat(paramsOff).isPresent();
+    assertThat(paramsOff.get().isOn()).isFalse();
   }
 
-  public static class SingleStringParameter {
-    private String message;
+  @Test
+  public void either_this_or_that() {
+    final ArgumentResolver<OneOrTheOther> resolver = new ArgumentResolver<>(OneOrTheOther.class);
 
-    public String getMessage() {
-      return message;
-    }
+    final String[] argsStdin = {
+        "--stdin"
+    };
 
-    public void setMessage(String message) {
-      this.message = message;
-    }
-  }
+    final Optional<OneOrTheOther> stdin = resolver.resolve(argsStdin);
+    assertThat(stdin).isPresent();
+    assertThat(stdin.get().getMode()).isEqualTo(OneOrTheOther.Mode.STDIN);
 
-  public static class ParametersNumericTypes {
-    private int integer;
-    private float floatType;
-    private double doubleType;
+    final String[] argsIds = {
+        "--ids"
+    };
 
-    public int getInteger() {
-      return integer;
-    }
+    final Optional<OneOrTheOther> ids = resolver.resolve(argsIds);
+    assertThat(ids).isPresent();
+    assertThat(ids.get().getMode()).isEqualTo(OneOrTheOther.Mode.IDS);
 
-    public void setInteger(int integer) {
-      this.integer = integer;
-    }
+    final String[] emptyArgs = {};
 
-    public float getFloatType() {
-      return floatType;
-    }
-
-    public void setFloatType(float floatType) {
-      this.floatType = floatType;
-    }
-
-    public double getDoubleType() {
-      return doubleType;
-    }
-
-    public void setDoubleType(double doubleType) {
-      this.doubleType = doubleType;
-    }
-  }
-
-  public static class PathParameters {
-    private Path mustExist;
-
-    public Path getMustExist() {
-      return mustExist;
-    }
-
-    public void setMustExist(Path mustExist) {
-      this.mustExist = mustExist;
-    }
+    final Optional<OneOrTheOther> empty = resolver.resolve(emptyArgs);
+    assertThat(empty.isPresent()).isFalse();
   }
 }
