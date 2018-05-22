@@ -42,7 +42,7 @@ class ArgumentResolver<T> {
     final T requestObject = parametersClass.newInstance();
     final Set<PropertyDescriptor> propertyDescriptors = propertiesForParameters(requestObject);
 
-    final Options options = OptionMaker.optionsFor(propertyDescriptors);
+    final Options options = OptionMaker.optionsFor(requestObject);
 
     try {
       new ArgumentPopulator<>().populateBean(requestObject, propertyDescriptors, options, args);

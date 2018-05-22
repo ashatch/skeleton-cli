@@ -1,25 +1,14 @@
-package net.andrewhatch.skeletoncli.examples;
+package net.andrewhatch.skeletoncli.models;
 
 import net.andrewhatch.skeletoncli.options.groups.Group;
 
-public class HelloWorldParameters {
-  private String message;
+public class AyOrBee {
 
   @Group("mode")
   private String a;
 
   @Group("mode")
   private String b;
-
-  public HelloWorldParameters() {}
-
-  public String getMessage() {
-    return message;
-  }
-
-  public void setMessage(String message) {
-    this.message = message;
-  }
 
   public String getA() {
     return a;
@@ -37,3 +26,4 @@ public class HelloWorldParameters {
     this.b = b;
   }
 }
+

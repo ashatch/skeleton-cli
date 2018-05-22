@@ -2,6 +2,7 @@ package net.andrewhatch.skeletoncli;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import net.andrewhatch.skeletoncli.models.AyOrBee;
 import net.andrewhatch.skeletoncli.models.BooleanSwitchParameter;
 import net.andrewhatch.skeletoncli.models.NoParameters;
 import net.andrewhatch.skeletoncli.models.OneOrTheOther;
@@ -136,5 +137,30 @@ public class ArgumentResolverTest {
 
     final Optional<OneOrTheOther> empty = resolver.resolve(emptyArgs);
     assertThat(empty.isPresent()).isFalse();
+  }
+
+  @Test
+  public void either_a_or_b() {
+    final ArgumentResolver<AyOrBee> resolver = new ArgumentResolver<>(AyOrBee.class);
+
+    final String[] pickA = {
+      "--a", "thing"
+    };
+
+    final Optional<AyOrBee> resolverForA = resolver.resolve(pickA);
+
+    assertThat(resolverForA).isPresent();
+    assertThat(resolverForA.get().getA()).isNotNull();
+    assertThat(resolverForA.get().getB()).isNull();
+
+    final String[] pickB = {
+        "--b", "thing"
+    };
+
+    final Optional<AyOrBee> resolverForB = resolver.resolve(pickB);
+
+    assertThat(resolverForB).isPresent();
+    assertThat(resolverForB.get().getA()).isNull();
+    assertThat(resolverForB.get().getB()).isNotNull();
   }
 }
