@@ -1,6 +1,6 @@
 package net.andrewhatch.skeletoncli.models;
 
-public class ParametersNumericTypes {
+public class RequestWithNumericTypes {
   private int integer;
   private float floatType;
   private double doubleType;

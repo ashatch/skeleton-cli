@@ -7,11 +7,12 @@ import java.util.function.Consumer;
 
 public class HelloWorld {
   public static void main(String[] args) throws ParseException {
-    Consumer<HelloWorldParameters> program = parameters -> System.out.println(parameters.getMessage());
+    Consumer<HelloWorldRequest> program = request -> System.out.println(request.getMessage());
 
-    System.out.println(CliBuilder.from(args, HelloWorldParameters.class).parameters());
+    System.out.println(CliBuilder.from(args, HelloWorldRequest.class)
+        .requestBean());
 
-    final int exitStatusCode = CliBuilder.from(args, HelloWorldParameters.class)
+    final int exitStatusCode = CliBuilder.from(args, HelloWorldRequest.class)
         .run(program)
         .getExitStatusCode();
 

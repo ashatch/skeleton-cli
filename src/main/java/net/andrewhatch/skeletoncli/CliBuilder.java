@@ -5,24 +5,23 @@ import java.util.function.Consumer;
 
 public class CliBuilder<T> {
 
-  private final Class<T> parametersClass;
+  private final Class<T> requestClass;
   private String[] args;
 
-  public static <R> CliBuilder<R> from(final String[] args, final Class<R> parametersClass) {
-    return new CliBuilder<>(args, parametersClass);
+  public static <R> CliBuilder<R> from(final String[] args, final Class<R> requestClass) {
+    return new CliBuilder<>(args, requestClass);
   }
 
   private CliBuilder(
       final String[] args,
-      final Class<T> parametersClass
+      final Class<T> requestClass
   ) {
     this.args = args;
-    this.parametersClass = parametersClass;
+    this.requestClass = requestClass;
   }
 
   public RunStatus run(final Consumer<T> requestConsumer) {
-    final Optional<T> requestOptional = new ArgumentResolver<>(parametersClass)
-        .resolve(this.args);
+    final Optional<T> requestOptional = requestBean();
 
     if (requestOptional.isPresent()) {
       requestOptional.ifPresent(requestConsumer);
@@ -32,8 +31,8 @@ public class CliBuilder<T> {
     }
   }
 
-  public Optional<T> parameters() {
-    return new ArgumentResolver<>(parametersClass)
+  public Optional<T> requestBean() {
+    return new RequestResolver<>(requestClass)
         .resolve(this.args);
   }
 

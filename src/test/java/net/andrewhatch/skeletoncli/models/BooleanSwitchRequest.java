@@ -1,6 +1,6 @@
 package net.andrewhatch.skeletoncli.models;
 
-public class BooleanSwitchParameter {
+public class BooleanSwitchRequest {
   private boolean on;
 
   public boolean isOn() {

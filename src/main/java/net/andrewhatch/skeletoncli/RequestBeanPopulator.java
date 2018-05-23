@@ -17,23 +17,24 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Set;
 
-class ArgumentPopulator<T> {
+class RequestBeanPopulator<T> {
 
   void populateBean(
-      final T requestObject,
+      final T requestBean,
       final Set<PropertyDescriptor> propertyDescriptors,
       final Options options,
       final String[] args
   ) throws ParseException {
+
     final CommandLineParser parser = new DefaultParser();
     final CommandLine commandLine = parser.parse(options, args);
 
     propertyDescriptors.forEach(descriptor ->
-        this.setProperty(requestObject, descriptor, commandLine));
+        this.setProperty(requestBean, descriptor, commandLine));
   }
 
   private void setProperty(
-      final T requestObject,
+      final T requestBean,
       final PropertyDescriptor propertyDescriptor,
       final CommandLine commandLine
   ) {
@@ -42,24 +43,25 @@ class ArgumentPopulator<T> {
       final String propertyName = propertyDescriptor.getName();
 
       if (Path.class.equals(propertyType)) {
-        resolvePathArgument(requestObject, propertyName, commandLine);
+        resolvePathProperty(requestBean, propertyName, commandLine);
       } else if (boolean.class.equals(propertyType) || Boolean.class.equals(propertyType)) {
-        resolveBooleanSwitch(requestObject, propertyName, commandLine);
+        resolveBooleanSwitchProperty(requestBean, propertyName, commandLine);
       } else if (propertyType.isEnum()) {
-        resolveEnumType(requestObject, propertyName, propertyDescriptor, commandLine);
+        resolveEnumTypeProperty(requestBean, propertyName, propertyDescriptor, commandLine);
       } else {
         BeanUtils.setProperty(
-            requestObject,
+            requestBean,
             propertyName,
             commandLine.getOptionValue(propertyName));
       }
+
     } catch (IllegalAccessException | InvocationTargetException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private void resolveEnumType(
-      final T requestObject,
+  private void resolveEnumTypeProperty(
+      final T requestBean,
       final String propertyName,
       final PropertyDescriptor propertyDescriptor,
       final CommandLine commandLine
@@ -79,12 +81,12 @@ class ArgumentPopulator<T> {
         .orElseThrow(() -> new RuntimeException("Could not resolve enum value"));
 
     BeanUtils.setProperty(
-        requestObject,
+        requestBean,
         propertyName,
         enumValue);
   }
 
-  private void resolveBooleanSwitch(
+  private void resolveBooleanSwitchProperty(
       final T requestObject,
       final String propertyName,
       final CommandLine commandLine
@@ -93,22 +95,22 @@ class ArgumentPopulator<T> {
     BeanUtils.setProperty(requestObject, propertyName, hasOption);
   }
 
-  private void resolvePathArgument(
-      T requestObject,
-      String key,
-      CommandLine commandLine
+  private void resolvePathProperty(
+      final T requestObject,
+      final String key,
+      final CommandLine commandLine
   ) throws IllegalAccessException, InvocationTargetException {
 
-    final Path argumentPath = Paths.get(commandLine.getOptionValue(key));
-    if (!Files.exists(argumentPath)) {
+    final Path pathProperty = Paths.get(commandLine.getOptionValue(key));
+    if (!Files.exists(pathProperty)) {
       throw new InvalidCommandLineException(
-          String.format("Path \"%s\" must exist", String.valueOf(argumentPath)));
+          String.format("Path \"%s\" must exist", String.valueOf(pathProperty)));
     }
-    BeanUtils.setProperty(requestObject, key, argumentPath);
+    BeanUtils.setProperty(requestObject, key, pathProperty);
   }
 
   @SuppressWarnings("unchecked")
-  private Enum[] enumConstants(PropertyDescriptor propertyDescriptor) {
+  private Enum[] enumConstants(final PropertyDescriptor propertyDescriptor) {
     return ((Class<? extends Enum>) propertyDescriptor.getPropertyType()).getEnumConstants();
   }
 }

@@ -2,7 +2,7 @@ package net.andrewhatch.skeletoncli.examples;
 
 import net.andrewhatch.skeletoncli.options.groups.Group;
 
-public class HelloWorldParameters {
+public class HelloWorldRequest {
   private String message;
 
   @Group("mode")
@@ -11,7 +11,7 @@ public class HelloWorldParameters {
   @Group("mode")
   private String b;
 
-  public HelloWorldParameters() {}
+  public HelloWorldRequest() {}
 
   public String getMessage() {
     return message;

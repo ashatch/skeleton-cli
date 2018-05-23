@@ -1,6 +1,6 @@
 package net.andrewhatch.skeletoncli.options;
 
-import net.andrewhatch.skeletoncli.options.groups.ArgumentGroups;
+import net.andrewhatch.skeletoncli.options.groups.PropertyGroups;
 
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.cli.Option;
@@ -18,7 +18,7 @@ public class OptionMaker<T> {
   private Set<PropertyDescriptor> propertyDescriptors;
   private final T requestObject;
   private Options options;
-  private ArgumentGroups<T> argumentGroups;
+  private PropertyGroups<T> propertyGroups;
 
   public static <T> Options optionsFor(final T requestObject)
       throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
@@ -32,14 +32,14 @@ public class OptionMaker<T> {
   private Options build() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
     this.propertyDescriptors = propertiesForParameters(requestObject);
     this.options = new Options();
-    this.argumentGroups = ArgumentGroups.from(requestObject);
+    this.propertyGroups = PropertyGroups.from(requestObject);
 
     propertyDescriptors.stream()
         .filter(descriptor -> !"class".equals(descriptor.getName()))
         .filter(descriptor -> !isGroupedProperty(descriptor))
         .forEach(this::addOptionForProperty);
 
-    this.argumentGroups.groups()
+    this.propertyGroups.groups()
         .stream()
         .forEach(groupName ->
             options.addOptionGroup(this.makeOptionsForGroup(groupName)));
@@ -70,7 +70,6 @@ public class OptionMaker<T> {
       return makeStandardProperty(descriptor);
     }
   }
-
 
   private OptionGroup makeSwitchProperty(
       final PropertyDescriptor descriptor
@@ -127,7 +126,7 @@ public class OptionMaker<T> {
     final OptionGroup optionGroup = new OptionGroup();
     optionGroup.setRequired(true);
 
-    final Set<String> fields = this.argumentGroups.fields(groupName);
+    final Set<String> fields = this.propertyGroups.fields(groupName);
     fields.stream()
         .map(this::propertyDescriptor)
         .forEach(descriptor -> optionGroup.addOption(makeBeanProperty(descriptor)));
@@ -144,7 +143,7 @@ public class OptionMaker<T> {
   }
 
   private boolean isGroupedProperty(final PropertyDescriptor descriptor) {
-    return argumentGroups.groupForField(descriptor.getName())
+    return propertyGroups.groupForField(descriptor.getName())
         .isPresent();
   }
 

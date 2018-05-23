@@ -9,18 +9,18 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ArgumentGroups<T> {
+public class PropertyGroups<T> {
 
   private final T obj;
   private final List<Field> groupFields;
 
-  private ArgumentGroups(T obj) {
+  private PropertyGroups(T obj) {
     this.obj = obj;
     this.groupFields = FieldUtils.getFieldsListWithAnnotation(this.obj.getClass(), Group.class);
   }
 
-  public static <R> ArgumentGroups<R> from(R obj) {
-    return new ArgumentGroups<>(obj);
+  public static <R> PropertyGroups<R> from(R obj) {
+    return new PropertyGroups<>(obj);
   }
 
   public Set<String> groups() {

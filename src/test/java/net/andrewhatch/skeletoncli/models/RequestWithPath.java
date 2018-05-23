@@ -2,7 +2,7 @@ package net.andrewhatch.skeletoncli.models;
 
 import java.nio.file.Path;
 
-public class PathParameters {
+public class RequestWithPath {
   private Path mustExist;
 
   public Path getMustExist() {

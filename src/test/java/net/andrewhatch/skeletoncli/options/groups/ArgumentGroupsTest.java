@@ -16,7 +16,7 @@ public class ArgumentGroupsTest {
     final AyOrBee request = new AyOrBee();
 
     final Set<String> groups =
-        ArgumentGroups.from(request)
+        PropertyGroups.from(request)
             .groups();
 
     assertThat(groups).containsExactly("mode");
@@ -27,7 +27,7 @@ public class ArgumentGroupsTest {
     final AyOrBee request = new AyOrBee();
 
     final Set<String> fields =
-        ArgumentGroups.from(request)
+        PropertyGroups.from(request)
             .fields("mode");
 
     assertThat(fields).containsExactly("a", "b");
@@ -37,12 +37,12 @@ public class ArgumentGroupsTest {
   public void groupForField() {
     final AyOrBee request = new AyOrBee();
 
-    final ArgumentGroups<AyOrBee> argumentGroups = ArgumentGroups.from(request);
+    final PropertyGroups<AyOrBee> propertyGroups = PropertyGroups.from(request);
 
-    assertThat(argumentGroups.groupForField("a")).isPresent();
-    assertThat(argumentGroups.groupForField("a").get()).isEqualTo("mode");
-    assertThat(argumentGroups.groupForField("b")).isPresent();
-    assertThat(argumentGroups.groupForField("b").get()).isEqualTo("mode");
-    assertThat(argumentGroups.groupForField("z")).isNotPresent();
+    assertThat(propertyGroups.groupForField("a")).isPresent();
+    assertThat(propertyGroups.groupForField("a").get()).isEqualTo("mode");
+    assertThat(propertyGroups.groupForField("b")).isPresent();
+    assertThat(propertyGroups.groupForField("b").get()).isEqualTo("mode");
+    assertThat(propertyGroups.groupForField("z")).isNotPresent();
   }
 }

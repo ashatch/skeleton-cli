@@ -7,17 +7,17 @@ import org.junit.Test;
 public class CliBuilderTest {
 
   @Test
-  public void consumer_is_executed() {
+  public void consumer_is_executed_for_valid_request() {
     final String[] argv = {};
 
-    CliBuilder.from(argv, Args.class).run(consumer -> assertThat(consumer).isNotNull());
+    CliBuilder.from(argv, SimpleRequest.class).run(consumer -> assertThat(consumer).isNotNull());
   }
 
   @Test
-  public void parameters_are_present() {
+  public void request_object_is_present_for_valid_request() {
     final String[] argv = {};
 
-    assertThat(CliBuilder.from(argv, Args.class).parameters()).isPresent();
+    assertThat(CliBuilder.from(argv, SimpleRequest.class).requestBean()).isPresent();
   }
 
   @Test
@@ -26,7 +26,7 @@ public class CliBuilderTest {
         "--myoption", "myvalue"
     };
 
-    final int exitStatusCode = CliBuilder.from(argv, ArgsWithRequiredField.class)
+    final int exitStatusCode = CliBuilder.from(argv, RequestWithRequiredProperty.class)
         .run(consumer -> {
           // do nothing
         })
@@ -41,7 +41,7 @@ public class CliBuilderTest {
         "--myoption"
     };
 
-    final int exitStatusCode = CliBuilder.from(argv, ArgsWithRequiredField.class)
+    final int exitStatusCode = CliBuilder.from(argv, RequestWithRequiredProperty.class)
         .run(consumer -> {
           // do nothing
         })
@@ -50,9 +50,9 @@ public class CliBuilderTest {
     assertThat(exitStatusCode).isNotEqualTo(0);
   }
 
-  public static class Args {}
+  public static class SimpleRequest {}
 
-  public static class ArgsWithRequiredField {
+  public static class RequestWithRequiredProperty {
     private String myoption;
 
     public String getMyoption() {

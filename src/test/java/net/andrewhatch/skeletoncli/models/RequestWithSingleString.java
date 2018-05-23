@@ -1,6 +1,6 @@
 package net.andrewhatch.skeletoncli.models;
 
-public class SingleStringParameter {
+public class RequestWithSingleString {
   private String message;
 
   public String getMessage() {

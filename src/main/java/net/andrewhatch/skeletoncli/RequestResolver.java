@@ -17,12 +17,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-class ArgumentResolver<T> {
+class RequestResolver<T> {
 
-  private final Class<T> parametersClass;
+  private final Class<T> requestClass;
 
-  ArgumentResolver(final Class<T> parametersClass) {
-    this.parametersClass = parametersClass;
+  RequestResolver(final Class<T> requestClass) {
+    this.requestClass = requestClass;
   }
 
   Optional<T> resolve(final String[] args) throws InvalidParametersClassException, InvalidCommandLineException {
@@ -39,25 +39,27 @@ class ArgumentResolver<T> {
       throws IllegalAccessException, InstantiationException,
       ParseException, InvocationTargetException, NoSuchMethodException {
 
-    final T requestObject = parametersClass.newInstance();
-    final Set<PropertyDescriptor> propertyDescriptors = propertiesForParameters(requestObject);
+    final T requestObject = requestClass.newInstance();
+    final Set<PropertyDescriptor> propertyDescriptors = propertiesForRequest(requestObject);
 
     final Options options = OptionMaker.optionsFor(requestObject);
 
     try {
-      new ArgumentPopulator<>().populateBean(requestObject, propertyDescriptors, options, args);
+      new RequestBeanPopulator<>().populateBean(requestObject, propertyDescriptors, options, args);
       return Optional.of(requestObject);
 
     } catch (MissingOptionException missingOptionException) {
       usage(options);
+
     } catch (InvalidCommandLineException ice) {
       usage(ice.getMessage(), options);
+
     }
 
     return Optional.empty();
   }
 
-  private Set<PropertyDescriptor> propertiesForParameters(T requestObject)
+  private Set<PropertyDescriptor> propertiesForRequest(T requestObject)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     return Arrays.stream(new PropertyUtilsBean().getPropertyDescriptors(requestObject))
       .collect(Collectors.toSet());
