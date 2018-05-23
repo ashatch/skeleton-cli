@@ -151,16 +151,16 @@ public class ArgumentResolverTest {
 
     assertThat(resolverForA).isPresent();
     assertThat(resolverForA.get().getA()).isNotNull();
-    assertThat(resolverForA.get().getB()).isNull();
+    assertThat(resolverForA.get().isB()).isFalse();
 
     final String[] pickB = {
-        "--b", "thing"
+        "--b"
     };
 
     final Optional<AyOrBee> resolverForB = resolver.resolve(pickB);
 
     assertThat(resolverForB).isPresent();
     assertThat(resolverForB.get().getA()).isNull();
-    assertThat(resolverForB.get().getB()).isNotNull();
+    assertThat(resolverForB.get().isB()).isNotNull();
   }
 }

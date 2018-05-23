@@ -8,7 +8,7 @@ public class AyOrBee {
   private String a;
 
   @Group("mode")
-  private String b;
+  private boolean b;
 
   public String getA() {
     return a;
@@ -18,12 +18,13 @@ public class AyOrBee {
     this.a = a;
   }
 
-  public String getB() {
+  public boolean isB() {
     return b;
   }
 
-  public void setB(String b) {
+  public void setB(boolean b) {
     this.b = b;
   }
+
 }
 

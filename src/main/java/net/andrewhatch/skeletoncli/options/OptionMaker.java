@@ -52,14 +52,25 @@ public class OptionMaker<T> {
   ) {
     final Class<?> propertyType = descriptor.getPropertyType();
 
-    if (isBooleanProperty(propertyType)) {
-      options.addOption(makeBooleanProperty(descriptor));
-    } else if (propertyType.isEnum()) {
+    if (propertyType.isEnum()) {
       options.addOptionGroup(makeSwitchProperty(descriptor));
     } else {
-      options.addOption(makeStandardProperty(descriptor));
+      options.addOption(makeBeanProperty(descriptor));
+    }
+
+    makeBeanProperty(descriptor);
+  }
+
+  private Option makeBeanProperty(PropertyDescriptor descriptor) {
+    final Class<?> propertyType = descriptor.getPropertyType();
+
+    if (isBooleanProperty(propertyType)) {
+      return makeBooleanProperty(descriptor);
+    } else {
+      return makeStandardProperty(descriptor);
     }
   }
+
 
   private OptionGroup makeSwitchProperty(
       final PropertyDescriptor descriptor
@@ -119,7 +130,7 @@ public class OptionMaker<T> {
     final Set<String> fields = this.argumentGroups.fields(groupName);
     fields.stream()
         .map(this::propertyDescriptor)
-        .forEach(descriptor -> optionGroup.addOption(makeStandardProperty(descriptor)));
+        .forEach(descriptor -> optionGroup.addOption(makeBeanProperty(descriptor)));
 
     return optionGroup;
   }
