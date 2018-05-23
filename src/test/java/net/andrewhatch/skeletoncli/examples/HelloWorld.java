@@ -11,7 +11,10 @@ public class HelloWorld {
 
     System.out.println(CliBuilder.from(args, HelloWorldParameters.class).parameters());
 
-    CliBuilder.from(args, HelloWorldParameters.class)
-        .run(program);
+    final int exitStatusCode = CliBuilder.from(args, HelloWorldParameters.class)
+        .run(program)
+        .getExitStatusCode();
+
+    System.exit(exitStatusCode);
   }
 }

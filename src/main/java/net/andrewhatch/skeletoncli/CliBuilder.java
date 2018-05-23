@@ -20,14 +20,35 @@ public class CliBuilder<T> {
     this.parametersClass = parametersClass;
   }
 
-  public void run(final Consumer<T> requestConsumer) {
-    new ArgumentResolver<>(parametersClass)
-        .resolve(this.args)
-        .ifPresent(requestConsumer);
+  public RunStatus run(final Consumer<T> requestConsumer) {
+    final Optional<T> requestOptional = new ArgumentResolver<>(parametersClass)
+        .resolve(this.args);
+
+    if (requestOptional.isPresent()) {
+      requestOptional.ifPresent(requestConsumer);
+      return RunStatus.OK;
+    } else {
+      return RunStatus.FAIL;
+    }
   }
 
   public Optional<T> parameters() {
     return new ArgumentResolver<>(parametersClass)
         .resolve(this.args);
+  }
+
+  public enum RunStatus {
+    OK(0),
+    FAIL(1);
+
+    private final int exitStatusCode;
+
+    RunStatus(int exitStatusCode) {
+      this.exitStatusCode = exitStatusCode;
+    }
+
+    public int getExitStatusCode() {
+      return exitStatusCode;
+    }
   }
 }

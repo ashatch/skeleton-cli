@@ -29,9 +29,9 @@ class ArgumentResolver<T> {
     try {
       return resolveOrThrowException(args);
     } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
-      throw new InvalidParametersClassException(e);
+      return Optional.empty();
     } catch (ParseException e) {
-      throw new InvalidCommandLineException(e);
+      return Optional.empty();
     }
   }
 
