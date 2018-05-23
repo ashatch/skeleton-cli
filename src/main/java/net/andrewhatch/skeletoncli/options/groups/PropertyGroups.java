@@ -11,12 +11,10 @@ import java.util.stream.Collectors;
 
 public class PropertyGroups<T> {
 
-  private final T obj;
   private final List<Field> groupFields;
 
   private PropertyGroups(T obj) {
-    this.obj = obj;
-    this.groupFields = FieldUtils.getFieldsListWithAnnotation(this.obj.getClass(), Group.class);
+    this.groupFields = FieldUtils.getFieldsListWithAnnotation(obj.getClass(), Group.class);
   }
 
   public static <R> PropertyGroups<R> from(R obj) {

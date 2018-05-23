@@ -1,4 +1,4 @@
-package net.andrewhatch.skeletoncli.examples;
+package net.andrewhatch.skeletoncli.examples.helloworld;
 
 import net.andrewhatch.skeletoncli.options.groups.Group;
 

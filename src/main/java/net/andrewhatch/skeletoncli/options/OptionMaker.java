@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 public class OptionMaker<T> {
 
-  private Set<PropertyDescriptor> propertyDescriptors;
   private final T requestObject;
   private Options options;
   private PropertyGroups<T> propertyGroups;
@@ -30,7 +29,7 @@ public class OptionMaker<T> {
   }
 
   private Options build() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    this.propertyDescriptors = propertiesForParameters(requestObject);
+    final Set<PropertyDescriptor> propertyDescriptors = propertiesForParameters(requestObject);
     this.options = new Options();
     this.propertyGroups = PropertyGroups.from(requestObject);
 
@@ -40,7 +39,6 @@ public class OptionMaker<T> {
         .forEach(this::addOptionForProperty);
 
     this.propertyGroups.groups()
-        .stream()
         .forEach(groupName ->
             options.addOptionGroup(this.makeOptionsForGroup(groupName)));
 
@@ -112,7 +110,7 @@ public class OptionMaker<T> {
       throw new IllegalArgumentException("Must be an enum");
     }
 
-    return (Class<? extends Enum>) descriptor.getPropertyType();
+    return EnumPropertyType.of(descriptor);
   }
 
   private Set<PropertyDescriptor> propertiesForParameters(T requestObject)

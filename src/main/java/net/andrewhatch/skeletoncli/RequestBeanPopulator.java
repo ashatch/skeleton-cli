@@ -1,6 +1,7 @@
 package net.andrewhatch.skeletoncli;
 
 import net.andrewhatch.skeletoncli.exceptions.InvalidCommandLineException;
+import net.andrewhatch.skeletoncli.options.EnumPropertyType;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.cli.CommandLine;
@@ -109,8 +110,7 @@ class RequestBeanPopulator<T> {
     BeanUtils.setProperty(requestObject, key, pathProperty);
   }
 
-  @SuppressWarnings("unchecked")
   private Enum[] enumConstants(final PropertyDescriptor propertyDescriptor) {
-    return ((Class<? extends Enum>) propertyDescriptor.getPropertyType()).getEnumConstants();
+    return EnumPropertyType.of(propertyDescriptor).getEnumConstants();
   }
 }

@@ -92,29 +92,29 @@ class RequestResolver<T> {
     private String commandName = "cmd";
     private String footer = "";
 
-    public Config withCommandName(final String name) {
+    Config withCommandName(final String name) {
       setCommandName(name);
       return this;
     }
 
-    public Config withFooter(final String footer) {
+    Config withFooter(final String footer) {
       setFooter(footer);
       return this;
     }
 
-    public String getCommandName() {
+    String getCommandName() {
       return commandName;
     }
 
-    public void setCommandName(String commandName) {
+    void setCommandName(String commandName) {
       this.commandName = commandName;
     }
 
-    public String getFooter() {
+    String getFooter() {
       return footer;
     }
 
-    public void setFooter(String footer) {
+    void setFooter(String footer) {
       this.footer = footer;
     }
   }
