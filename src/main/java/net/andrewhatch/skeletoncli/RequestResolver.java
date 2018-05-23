@@ -20,17 +20,23 @@ import java.util.stream.Collectors;
 class RequestResolver<T> {
 
   private final Class<T> requestClass;
+  private final Config config;
 
   RequestResolver(final Class<T> requestClass) {
+    this(requestClass, new Config());
+  }
+
+  RequestResolver(final Class<T> requestClass, final Config config) {
     this.requestClass = requestClass;
+    this.config = config;
   }
 
   Optional<T> resolve(final String[] args) throws InvalidParametersClassException, InvalidCommandLineException {
     try {
       return resolveOrThrowException(args);
-    } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
-      return Optional.empty();
-    } catch (ParseException e) {
+    } catch (IllegalAccessException | InstantiationException
+        | InvocationTargetException | NoSuchMethodException | ParseException e
+    ) {
       return Optional.empty();
     }
   }
@@ -66,8 +72,7 @@ class RequestResolver<T> {
   }
 
   private void usage(Options options) {
-    HelpFormatter formatter = new HelpFormatter();
-    formatter.printHelp( "ant", options );
+    usage("", options);
   }
 
   private void usage(String message, Options options) {
@@ -76,8 +81,41 @@ class RequestResolver<T> {
         : "";
 
     HelpFormatter formatter = new HelpFormatter();
-    formatter.printHelp( "cmd", header, options, "");
+    formatter.printHelp(
+        this.config.getCommandName(),
+        header,
+        options,
+        this.config.getFooter());
   }
 
+  static class Config {
+    private String commandName = "cmd";
+    private String footer = "";
 
+    public Config withCommandName(final String name) {
+      setCommandName(name);
+      return this;
+    }
+
+    public Config withFooter(final String footer) {
+      setFooter(footer);
+      return this;
+    }
+
+    public String getCommandName() {
+      return commandName;
+    }
+
+    public void setCommandName(String commandName) {
+      this.commandName = commandName;
+    }
+
+    public String getFooter() {
+      return footer;
+    }
+
+    public void setFooter(String footer) {
+      this.footer = footer;
+    }
+  }
 }

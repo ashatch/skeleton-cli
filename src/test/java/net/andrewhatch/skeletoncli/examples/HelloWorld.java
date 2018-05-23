@@ -9,10 +9,9 @@ public class HelloWorld {
   public static void main(String[] args) throws ParseException {
     Consumer<HelloWorldRequest> program = request -> System.out.println(request.getMessage());
 
-    System.out.println(CliBuilder.from(args, HelloWorldRequest.class)
-        .requestBean());
-
     final int exitStatusCode = CliBuilder.from(args, HelloWorldRequest.class)
+        .withCommandName("helloworld")
+        .withFooter("a hello world production")
         .run(program)
         .getExitStatusCode();
 

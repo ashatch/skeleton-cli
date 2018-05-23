@@ -7,6 +7,8 @@ public class CliBuilder<T> {
 
   private final Class<T> requestClass;
   private String[] args;
+  private String commandName = "cli";
+  private String footer = "";
 
   public static <R> CliBuilder<R> from(final String[] args, final Class<R> requestClass) {
     return new CliBuilder<>(args, requestClass);
@@ -18,6 +20,16 @@ public class CliBuilder<T> {
   ) {
     this.args = args;
     this.requestClass = requestClass;
+  }
+
+  public CliBuilder<T> withCommandName(final String name) {
+    this.commandName = name;
+    return this;
+  }
+
+  public CliBuilder<T> withFooter(final String footer) {
+    this.footer = footer;
+    return this;
   }
 
   public RunStatus run(final Consumer<T> requestConsumer) {
@@ -32,7 +44,11 @@ public class CliBuilder<T> {
   }
 
   public Optional<T> requestBean() {
-    return new RequestResolver<>(requestClass)
+    final RequestResolver.Config config = new RequestResolver.Config()
+        .withCommandName(commandName)
+        .withFooter(footer);
+
+    return new RequestResolver<>(requestClass, config)
         .resolve(this.args);
   }
 
