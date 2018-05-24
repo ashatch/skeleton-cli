@@ -17,11 +17,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 
 class RequestBeanPopulator<T> {
 
-  void populateBean(
+  Optional<T> populateBean(
       final T requestBean,
       final Set<PropertyDescriptor> propertyDescriptors,
       final Options options,
@@ -34,6 +35,8 @@ class RequestBeanPopulator<T> {
       for (PropertyDescriptor descriptor : propertyDescriptors) {
         this.applyBeanProperty(requestBean, descriptor, commandLine);
       }
+
+      return Optional.of(requestBean);
 
     } catch (final ParseException parseException) {
       throw new InvalidCommandLineException(parseException.getMessage());

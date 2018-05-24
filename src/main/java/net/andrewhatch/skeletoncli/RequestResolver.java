@@ -6,7 +6,6 @@ import net.andrewhatch.skeletoncli.options.OptionMaker;
 
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -36,7 +35,7 @@ class RequestResolver<T> {
       return resolveOrThrowException(args);
     } catch (IllegalAccessException | InstantiationException
         | InvocationTargetException | NoSuchMethodException | ParseException e
-    ) {
+        ) {
       return Optional.empty();
     }
   }
@@ -51,14 +50,11 @@ class RequestResolver<T> {
     final Options options = OptionMaker.optionsFor(requestObject);
 
     try {
-      new RequestBeanPopulator<>().populateBean(requestObject, propertyDescriptors, options, args);
-      return Optional.of(requestObject);
+      return new RequestBeanPopulator<T>()
+          .populateBean(requestObject, propertyDescriptors, options, args);
 
     } catch (InvalidCommandLineException ice) {
       usage(ice.getMessage(), options);
-    } catch (InvalidRequestClassException irce) {
-      // this is a developer error, so throw it
-      throw irce;
     }
 
     return Optional.empty();
@@ -67,11 +63,7 @@ class RequestResolver<T> {
   private Set<PropertyDescriptor> propertiesForRequest(T requestObject)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     return Arrays.stream(new PropertyUtilsBean().getPropertyDescriptors(requestObject))
-      .collect(Collectors.toSet());
-  }
-
-  private void usage(Options options) {
-    usage("", options);
+        .collect(Collectors.toSet());
   }
 
   private void usage(String message, Options options) {
