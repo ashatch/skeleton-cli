@@ -1,7 +1,7 @@
 package net.andrewhatch.skeletoncli;
 
 import net.andrewhatch.skeletoncli.exceptions.InvalidCommandLineException;
-import net.andrewhatch.skeletoncli.exceptions.InvalidParametersClassException;
+import net.andrewhatch.skeletoncli.exceptions.InvalidRequestClassException;
 import net.andrewhatch.skeletoncli.options.OptionMaker;
 
 import org.apache.commons.beanutils.PropertyUtilsBean;
@@ -31,7 +31,7 @@ class RequestResolver<T> {
     this.config = config;
   }
 
-  Optional<T> resolve(final String[] args) throws InvalidParametersClassException, InvalidCommandLineException {
+  Optional<T> resolve(final String[] args) throws InvalidRequestClassException, InvalidCommandLineException {
     try {
       return resolveOrThrowException(args);
     } catch (IllegalAccessException | InstantiationException
@@ -54,12 +54,11 @@ class RequestResolver<T> {
       new RequestBeanPopulator<>().populateBean(requestObject, propertyDescriptors, options, args);
       return Optional.of(requestObject);
 
-    } catch (MissingOptionException missingOptionException) {
-      usage(options);
-
     } catch (InvalidCommandLineException ice) {
       usage(ice.getMessage(), options);
-
+    } catch (InvalidRequestClassException irce) {
+      // this is a developer error, so throw it
+      throw irce;
     }
 
     return Optional.empty();

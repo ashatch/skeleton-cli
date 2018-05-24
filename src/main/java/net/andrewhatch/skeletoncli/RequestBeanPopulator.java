@@ -1,6 +1,7 @@
 package net.andrewhatch.skeletoncli;
 
 import net.andrewhatch.skeletoncli.exceptions.InvalidCommandLineException;
+import net.andrewhatch.skeletoncli.exceptions.InvalidRequestClassException;
 import net.andrewhatch.skeletoncli.options.EnumPropertyType;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -25,49 +26,54 @@ class RequestBeanPopulator<T> {
       final Set<PropertyDescriptor> propertyDescriptors,
       final Options options,
       final String[] args
-  ) throws ParseException {
-
-    final CommandLineParser parser = new DefaultParser();
-    final CommandLine commandLine = parser.parse(options, args);
-
-    propertyDescriptors.forEach(descriptor ->
-        this.setProperty(requestBean, descriptor, commandLine));
-  }
-
-  private void setProperty(
-      final T requestBean,
-      final PropertyDescriptor propertyDescriptor,
-      final CommandLine commandLine
-  ) {
+  ) throws InvalidCommandLineException, InvalidRequestClassException {
     try {
-      final Class<?> propertyType = propertyDescriptor.getPropertyType();
-      final String propertyName = propertyDescriptor.getName();
+      final CommandLineParser parser = new DefaultParser();
+      final CommandLine commandLine = parser.parse(options, args);
 
-      if (Path.class.equals(propertyType)) {
-        resolvePathProperty(requestBean, propertyName, commandLine);
-      } else if (boolean.class.equals(propertyType) || Boolean.class.equals(propertyType)) {
-        resolveBooleanSwitchProperty(requestBean, propertyName, commandLine);
-      } else if (propertyType.isEnum()) {
-        resolveEnumTypeProperty(requestBean, propertyName, propertyDescriptor, commandLine);
-      } else {
-        BeanUtils.setProperty(
-            requestBean,
-            propertyName,
-            commandLine.getOptionValue(propertyName));
+      for (PropertyDescriptor descriptor : propertyDescriptors) {
+        this.applyBeanProperty(requestBean, descriptor, commandLine);
       }
 
-    } catch (IllegalAccessException | InvocationTargetException e) {
-      throw new RuntimeException(e);
+    } catch (final ParseException parseException) {
+      throw new InvalidCommandLineException(parseException.getMessage());
+    } catch (final IllegalAccessException | InvocationTargetException e) {
+      throw new InvalidRequestClassException(e);
     }
   }
 
-  private void resolveEnumTypeProperty(
+  private void applyBeanProperty(
+      final T requestBean,
+      final PropertyDescriptor propertyDescriptor,
+      final CommandLine commandLine
+  ) throws InvocationTargetException, IllegalAccessException {
+
+    final Class<?> propertyType = propertyDescriptor.getPropertyType();
+    final String propertyName = propertyDescriptor.getName();
+
+    if (Path.class.equals(propertyType)) {
+      applyPathProperty(requestBean, propertyName, commandLine);
+    } else if (boolean.class.equals(propertyType) || Boolean.class.equals(propertyType)) {
+      applyBooleanSwitchProperty(requestBean, propertyName, commandLine);
+    } else if (propertyType.isEnum()) {
+      applyEnumTypeProperty(requestBean, propertyName, propertyDescriptor, commandLine);
+    } else {
+      BeanUtils.setProperty(
+          requestBean,
+          propertyName,
+          commandLine.getOptionValue(propertyName));
+    }
+  }
+
+  private void applyEnumTypeProperty(
       final T requestBean,
       final String propertyName,
       final PropertyDescriptor propertyDescriptor,
       final CommandLine commandLine
   ) throws InvocationTargetException, IllegalAccessException {
-    final Enum[] enumConstants = enumConstants(propertyDescriptor);
+
+    final Enum[] enumConstants = EnumPropertyType.of(propertyDescriptor)
+        .getEnumConstants();
 
     final String matchingCommandLineOption = Arrays.stream(enumConstants)
         .map(String::valueOf)
@@ -87,16 +93,17 @@ class RequestBeanPopulator<T> {
         enumValue);
   }
 
-  private void resolveBooleanSwitchProperty(
+  private void applyBooleanSwitchProperty(
       final T requestObject,
       final String propertyName,
       final CommandLine commandLine
   ) throws InvocationTargetException, IllegalAccessException {
+
     boolean hasOption = commandLine.hasOption(propertyName);
     BeanUtils.setProperty(requestObject, propertyName, hasOption);
   }
 
-  private void resolvePathProperty(
+  private void applyPathProperty(
       final T requestObject,
       final String key,
       final CommandLine commandLine
@@ -108,9 +115,5 @@ class RequestBeanPopulator<T> {
           String.format("Path \"%s\" must exist", String.valueOf(pathProperty)));
     }
     BeanUtils.setProperty(requestObject, key, pathProperty);
-  }
-
-  private Enum[] enumConstants(final PropertyDescriptor propertyDescriptor) {
-    return EnumPropertyType.of(propertyDescriptor).getEnumConstants();
   }
 }
