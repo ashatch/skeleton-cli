@@ -34,8 +34,8 @@ class RequestResolver<T> {
     try {
       return resolveOrThrowException(args);
     } catch (IllegalAccessException | InstantiationException
-        | InvocationTargetException | NoSuchMethodException | ParseException e
-        ) {
+        | InvocationTargetException | NoSuchMethodException | ParseException e) {
+
       return Optional.empty();
     }
   }
