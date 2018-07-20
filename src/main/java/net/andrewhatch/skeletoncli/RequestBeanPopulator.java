@@ -5,6 +5,7 @@ import net.andrewhatch.skeletoncli.exceptions.InvalidRequestClassException;
 import net.andrewhatch.skeletoncli.options.EnumPropertyType;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -22,6 +23,12 @@ import java.util.Set;
 
 class RequestBeanPopulator<T> {
 
+  private final PropertyUtilsBean propertyUtilsBean;
+
+  RequestBeanPopulator() {
+    this.propertyUtilsBean = new PropertyUtilsBean();
+  }
+
   Optional<T> populateBean(
       final T requestBean,
       final Set<PropertyDescriptor> propertyDescriptors,
@@ -33,7 +40,9 @@ class RequestBeanPopulator<T> {
       final CommandLine commandLine = parser.parse(options, args);
 
       for (PropertyDescriptor descriptor : propertyDescriptors) {
-        this.applyBeanProperty(requestBean, descriptor, commandLine);
+        if (!propertyHasDefaultValue(requestBean, descriptor)) {
+          this.applyBeanProperty(requestBean, descriptor, commandLine);
+        }
       }
 
       return Optional.of(requestBean);
@@ -42,6 +51,14 @@ class RequestBeanPopulator<T> {
       throw new InvalidCommandLineException(parseException.getMessage());
     } catch (final IllegalAccessException | InvocationTargetException e) {
       throw new InvalidRequestClassException(e);
+    }
+  }
+
+  private boolean propertyHasDefaultValue(T requestBean, PropertyDescriptor descriptor) {
+    try {
+      return propertyUtilsBean.getProperty(requestBean, descriptor.getName()) != null;
+    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+      return false;
     }
   }
 

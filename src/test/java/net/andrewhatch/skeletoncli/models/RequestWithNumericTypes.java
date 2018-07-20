@@ -1,31 +1,31 @@
 package net.andrewhatch.skeletoncli.models;
 
 public class RequestWithNumericTypes {
-  private int integer;
-  private float floatType;
-  private double doubleType;
+  private Integer integer;
+  private Float floatType;
+  private Double doubleType;
 
-  public int getInteger() {
+  public Integer getInteger() {
     return integer;
   }
 
-  public void setInteger(int integer) {
+  public void setInteger(Integer integer) {
     this.integer = integer;
   }
 
-  public float getFloatType() {
+  public Float getFloatType() {
     return floatType;
   }
 
-  public void setFloatType(float floatType) {
+  public void setFloatType(Float floatType) {
     this.floatType = floatType;
   }
 
-  public double getDoubleType() {
+  public Double getDoubleType() {
     return doubleType;
   }
 
-  public void setDoubleType(double doubleType) {
+  public void setDoubleType(Double doubleType) {
     this.doubleType = doubleType;
   }
 }

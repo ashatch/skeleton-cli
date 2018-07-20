@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class OptionMaker<T> {
 
   private final T requestObject;
+  private final PropertyUtilsBean propertyUtilsBean;
   private Options options;
   private PropertyGroups<T> propertyGroups;
 
@@ -26,6 +27,7 @@ public class OptionMaker<T> {
 
   private OptionMaker(final T requestObject) {
     this.requestObject = requestObject;
+    this.propertyUtilsBean = new PropertyUtilsBean();
   }
 
   private Options build() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
@@ -36,36 +38,40 @@ public class OptionMaker<T> {
     propertyDescriptors.stream()
         .filter(descriptor -> !"class".equals(descriptor.getName()))
         .filter(descriptor -> !isGroupedProperty(descriptor))
-        .forEach(this::addOptionForProperty);
+        .forEach(descriptor -> this.addOptionForProperty(descriptor, requestObject));
 
     this.propertyGroups.groups()
         .forEach(groupName ->
-            options.addOptionGroup(this.makeOptionsForGroup(groupName)));
+            options.addOptionGroup(this.makeOptionsForGroup(groupName, requestObject)));
 
     return options;
   }
 
   private void addOptionForProperty(
-      final PropertyDescriptor descriptor
+      final PropertyDescriptor descriptor,
+      final T requestObject
   ) {
     final Class<?> propertyType = descriptor.getPropertyType();
 
     if (propertyType.isEnum()) {
       options.addOptionGroup(makeSwitchProperty(descriptor));
     } else {
-      options.addOption(makeBeanProperty(descriptor));
+      options.addOption(makeBeanProperty(descriptor, requestObject));
     }
 
-    makeBeanProperty(descriptor);
+    makeBeanProperty(descriptor, requestObject);
   }
 
-  private Option makeBeanProperty(PropertyDescriptor descriptor) {
+  private Option makeBeanProperty(
+      final PropertyDescriptor descriptor,
+      final T requestObject
+  ) {
     final Class<?> propertyType = descriptor.getPropertyType();
 
     if (isBooleanProperty(propertyType)) {
       return makeBooleanProperty(descriptor);
     } else {
-      return makeStandardProperty(descriptor);
+      return makeStandardProperty(descriptor, requestObject);
     }
   }
 
@@ -86,12 +92,27 @@ public class OptionMaker<T> {
     return group;
   }
 
-  private Option makeStandardProperty(PropertyDescriptor descriptor) {
-    return Option.builder()
+  private Option makeStandardProperty(PropertyDescriptor descriptor, T requestObject) {
+    Option.Builder builder = Option.builder()
         .longOpt(descriptor.getName())
-        .hasArg(true)
-        .required()
-        .build();
+        .hasArg(true);
+
+    if (!propertyHasDefaultValue(descriptor, requestObject)) {
+      builder = builder.required();
+    }
+
+    return builder.build();
+  }
+
+  private boolean propertyHasDefaultValue(
+      final PropertyDescriptor descriptor,
+      final T requestObject
+  ) {
+    try {
+      return propertyUtilsBean.getProperty(requestObject, descriptor.getName()) != null;
+    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+      return false;
+    }
   }
 
   private Option makeBooleanProperty(PropertyDescriptor descriptor) {
@@ -120,14 +141,17 @@ public class OptionMaker<T> {
         .collect(Collectors.toSet());
   }
 
-  private OptionGroup makeOptionsForGroup(String groupName) {
+  private OptionGroup makeOptionsForGroup(
+      String groupName,
+      T requestObject
+  ) {
     final OptionGroup optionGroup = new OptionGroup();
     optionGroup.setRequired(true);
 
     final Set<String> fields = this.propertyGroups.fields(groupName);
     fields.stream()
         .map(this::propertyDescriptor)
-        .forEach(descriptor -> optionGroup.addOption(makeBeanProperty(descriptor)));
+        .forEach(descriptor -> optionGroup.addOption(makeBeanProperty(descriptor, requestObject)));
 
     return optionGroup;
   }

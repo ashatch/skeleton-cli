@@ -1,13 +1,13 @@
 package net.andrewhatch.skeletoncli.models;
 
 public class BooleanSwitchRequest {
-  private boolean on;
+  private Boolean on;
 
-  public boolean isOn() {
+  public Boolean isOn() {
     return on;
   }
 
-  public void setOn(boolean on) {
+  public void setOn(Boolean on) {
     this.on = on;
   }
 }

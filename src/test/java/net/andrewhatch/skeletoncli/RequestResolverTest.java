@@ -4,6 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import net.andrewhatch.skeletoncli.models.AyOrBee;
 import net.andrewhatch.skeletoncli.models.BooleanSwitchRequest;
+import net.andrewhatch.skeletoncli.models.RequestWithDefault;
 import net.andrewhatch.skeletoncli.models.RequestWithNoProperties;
 import net.andrewhatch.skeletoncli.models.OneOrTheOther;
 import net.andrewhatch.skeletoncli.models.RequestWithNumericTypes;
@@ -162,5 +163,20 @@ public class RequestResolverTest {
     assertThat(resolverForB).isPresent();
     assertThat(resolverForB.get().getA()).isNull();
     assertThat(resolverForB.get().isB()).isNotNull();
+  }
+
+  @Test
+  public void test_default_remains_intact() {
+    final RequestResolver<RequestWithDefault> resolver = new RequestResolver<>(RequestWithDefault.class);
+
+    final String[] pickA = {
+        "--notDefaulted", "def"
+    };
+
+    final Optional<RequestWithDefault> request = resolver.resolve(pickA);
+
+    assertThat(request).isPresent();
+    assertThat(request.get().getThisIsDefaulted()).isEqualTo("abc");
+    assertThat(request.get().getNotDefaulted()).isEqualTo("def");
   }
 }
