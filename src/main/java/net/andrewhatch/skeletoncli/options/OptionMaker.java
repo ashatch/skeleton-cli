@@ -99,9 +99,22 @@ public class OptionMaker<T> {
 
     if (!propertyHasDefaultValue(descriptor, requestObject)) {
       builder = builder.required();
+    } else {
+      builder.desc("[default: " + defaultPropertyValue(requestObject, descriptor) + "]");
     }
 
     return builder.build();
+  }
+
+  private String defaultPropertyValue(
+      final T requestBean,
+      final PropertyDescriptor descriptor
+  ) {
+    try {
+      return String.valueOf(propertyUtilsBean.getProperty(requestBean, descriptor.getName()));
+    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+      return null;
+    }
   }
 
   private boolean propertyHasDefaultValue(
