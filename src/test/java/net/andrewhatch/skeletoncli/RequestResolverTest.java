@@ -179,4 +179,20 @@ public class RequestResolverTest {
     assertThat(request.get().getThisIsDefaulted()).isEqualTo("abc");
     assertThat(request.get().getNotDefaulted()).isEqualTo("def");
   }
+
+  @Test
+  public void can_override_default() {
+    final RequestResolver<RequestWithDefault> resolver = new RequestResolver<>(RequestWithDefault.class);
+
+    final String[] pickA = {
+        "--notDefaulted", "def",
+        "--thisIsDefaulted", "123"
+    };
+
+    final Optional<RequestWithDefault> request = resolver.resolve(pickA);
+
+    assertThat(request).isPresent();
+    assertThat(request.get().getThisIsDefaulted()).isEqualTo("123");
+    assertThat(request.get().getNotDefaulted()).isEqualTo("def");
+  }
 }

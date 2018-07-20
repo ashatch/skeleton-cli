@@ -40,9 +40,7 @@ class RequestBeanPopulator<T> {
       final CommandLine commandLine = parser.parse(options, args);
 
       for (PropertyDescriptor descriptor : propertyDescriptors) {
-        if (!propertyHasDefaultValue(requestBean, descriptor)) {
-          this.applyBeanProperty(requestBean, descriptor, commandLine);
-        }
+        this.applyBeanProperty(requestBean, descriptor, commandLine);
       }
 
       return Optional.of(requestBean);
@@ -54,12 +52,16 @@ class RequestBeanPopulator<T> {
     }
   }
 
-  private boolean propertyHasDefaultValue(T requestBean, PropertyDescriptor descriptor) {
+  private Object defaultPropertyValue(T requestBean, PropertyDescriptor descriptor) {
     try {
-      return propertyUtilsBean.getProperty(requestBean, descriptor.getName()) != null;
+      return propertyUtilsBean.getProperty(requestBean, descriptor.getName());
     } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-      return false;
+      return null;
     }
+  }
+
+  private boolean hasDefaultPropertyValue(T requestBean, PropertyDescriptor descriptor) {
+    return defaultPropertyValue(requestBean, descriptor) != null;
   }
 
   private void applyBeanProperty(
@@ -71,6 +73,12 @@ class RequestBeanPopulator<T> {
     final Class<?> propertyType = propertyDescriptor.getPropertyType();
     final String propertyName = propertyDescriptor.getName();
 
+    String optionValue = commandLine.getOptionValue(propertyName);
+
+    if (optionValue == null && hasDefaultPropertyValue(requestBean, propertyDescriptor)) {
+      optionValue = String.valueOf(defaultPropertyValue(requestBean, propertyDescriptor));
+    }
+
     if (Path.class.equals(propertyType)) {
       applyPathProperty(requestBean, propertyName, commandLine);
     } else if (boolean.class.equals(propertyType) || Boolean.class.equals(propertyType)) {
@@ -81,7 +89,7 @@ class RequestBeanPopulator<T> {
       BeanUtils.setProperty(
           requestBean,
           propertyName,
-          commandLine.getOptionValue(propertyName));
+          optionValue);
     }
   }
 
