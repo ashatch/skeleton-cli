@@ -4,9 +4,9 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import net.andrewhatch.skeletoncli.models.AyOrBee;
 import net.andrewhatch.skeletoncli.models.BooleanSwitchRequest;
+import net.andrewhatch.skeletoncli.models.OneOrTheOther;
 import net.andrewhatch.skeletoncli.models.RequestWithDefault;
 import net.andrewhatch.skeletoncli.models.RequestWithNoProperties;
-import net.andrewhatch.skeletoncli.models.OneOrTheOther;
 import net.andrewhatch.skeletoncli.models.RequestWithNumericTypes;
 import net.andrewhatch.skeletoncli.models.RequestWithPath;
 import net.andrewhatch.skeletoncli.models.RequestWithSingleString;
@@ -105,13 +105,13 @@ public class RequestResolverTest {
 
     final Optional<BooleanSwitchRequest> requestWithOn = resolver.resolve(argsOn);
     assertThat(requestWithOn).isPresent();
-    assertThat(requestWithOn.get().isOn()).isTrue();
+    assertThat(requestWithOn.get().getOn()).isTrue();
 
     final String[] argsOff = {};
 
     final Optional<BooleanSwitchRequest> requestWithoutOn = resolver.resolve(argsOff);
     assertThat(requestWithoutOn).isPresent();
-    assertThat(requestWithoutOn.get().isOn()).isFalse();
+    assertThat(requestWithoutOn.get().getOn()).isFalse();
   }
 
   @Test
@@ -152,7 +152,7 @@ public class RequestResolverTest {
 
     assertThat(resolverForA).isPresent();
     assertThat(resolverForA.get().getA()).isNotNull();
-    assertThat(resolverForA.get().isB()).isFalse();
+    assertThat(resolverForA.get().getB()).isFalse();
 
     final String[] pickB = {
         "--b"
@@ -162,7 +162,7 @@ public class RequestResolverTest {
 
     assertThat(resolverForB).isPresent();
     assertThat(resolverForB.get().getA()).isNull();
-    assertThat(resolverForB.get().isB()).isNotNull();
+    assertThat(resolverForB.get().getB()).isNotNull();
   }
 
   @Test

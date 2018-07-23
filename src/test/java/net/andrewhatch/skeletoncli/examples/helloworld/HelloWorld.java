@@ -1,6 +1,7 @@
 package net.andrewhatch.skeletoncli.examples.helloworld;
 
 import net.andrewhatch.skeletoncli.CliBuilder;
+
 import org.apache.commons.cli.ParseException;
 
 import java.util.function.Consumer;

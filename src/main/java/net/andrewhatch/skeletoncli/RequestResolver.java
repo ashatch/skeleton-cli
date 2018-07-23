@@ -2,19 +2,16 @@ package net.andrewhatch.skeletoncli;
 
 import net.andrewhatch.skeletoncli.exceptions.InvalidCommandLineException;
 import net.andrewhatch.skeletoncli.exceptions.InvalidRequestClassException;
+import net.andrewhatch.skeletoncli.model.RequestModel;
+import net.andrewhatch.skeletoncli.model.RequestModelBuilder;
 import net.andrewhatch.skeletoncli.options.OptionMaker;
 
-import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 class RequestResolver<T> {
 
@@ -45,25 +42,18 @@ class RequestResolver<T> {
       ParseException, InvocationTargetException, NoSuchMethodException {
 
     final T requestObject = requestClass.newInstance();
-    final Set<PropertyDescriptor> propertyDescriptors = propertiesForRequest(requestObject);
-
-    final Options options = OptionMaker.optionsFor(requestObject);
+    final RequestModel<T> requestModel = RequestModelBuilder.build(requestObject);
+    final Options options = OptionMaker.optionsFor(requestModel);
 
     try {
       return new RequestBeanPopulator<T>()
-          .populateBean(requestObject, propertyDescriptors, options, args);
+          .populateBean(requestModel, options, args);
 
     } catch (InvalidCommandLineException ice) {
       usage(ice.getMessage(), options);
     }
 
     return Optional.empty();
-  }
-
-  private Set<PropertyDescriptor> propertiesForRequest(T requestObject)
-      throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-    return Arrays.stream(new PropertyUtilsBean().getPropertyDescriptors(requestObject))
-        .collect(Collectors.toSet());
   }
 
   private void usage(String message, Options options) {

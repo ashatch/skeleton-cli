@@ -2,10 +2,9 @@ package net.andrewhatch.skeletoncli;
 
 import net.andrewhatch.skeletoncli.exceptions.InvalidCommandLineException;
 import net.andrewhatch.skeletoncli.exceptions.InvalidRequestClassException;
+import net.andrewhatch.skeletoncli.model.RequestModel;
 import net.andrewhatch.skeletoncli.options.EnumPropertyType;
 
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -19,19 +18,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.Set;
 
 class RequestBeanPopulator<T> {
 
-  private final PropertyUtilsBean propertyUtilsBean;
-
-  RequestBeanPopulator() {
-    this.propertyUtilsBean = new PropertyUtilsBean();
-  }
-
   Optional<T> populateBean(
-      final T requestBean,
-      final Set<PropertyDescriptor> propertyDescriptors,
+      final RequestModel<T> requestBean,
       final Options options,
       final String[] args
   ) throws InvalidCommandLineException, InvalidRequestClassException {
@@ -39,11 +30,11 @@ class RequestBeanPopulator<T> {
       final CommandLineParser parser = new DefaultParser();
       final CommandLine commandLine = parser.parse(options, args);
 
-      for (PropertyDescriptor descriptor : propertyDescriptors) {
+      for (PropertyDescriptor descriptor : requestBean.getProperties().values()) {
         this.applyBeanProperty(requestBean, descriptor, commandLine);
       }
 
-      return Optional.of(requestBean);
+      return Optional.ofNullable(requestBean.getRequestObject());
 
     } catch (final ParseException parseException) {
       throw new InvalidCommandLineException(parseException.getMessage());
@@ -52,20 +43,8 @@ class RequestBeanPopulator<T> {
     }
   }
 
-  private Object defaultPropertyValue(T requestBean, PropertyDescriptor descriptor) {
-    try {
-      return propertyUtilsBean.getProperty(requestBean, descriptor.getName());
-    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-      return null;
-    }
-  }
-
-  private boolean hasDefaultPropertyValue(T requestBean, PropertyDescriptor descriptor) {
-    return defaultPropertyValue(requestBean, descriptor) != null;
-  }
-
   private void applyBeanProperty(
-      final T requestBean,
+      final RequestModel<T> requestModel,
       final PropertyDescriptor propertyDescriptor,
       final CommandLine commandLine
   ) throws InvocationTargetException, IllegalAccessException {
@@ -75,26 +54,23 @@ class RequestBeanPopulator<T> {
 
     String optionValue = commandLine.getOptionValue(propertyName);
 
-    if (optionValue == null && hasDefaultPropertyValue(requestBean, propertyDescriptor)) {
-      optionValue = String.valueOf(defaultPropertyValue(requestBean, propertyDescriptor));
+    if (optionValue == null && requestModel.hasDefaultPropertyValue(propertyName)) {
+      optionValue = String.valueOf(requestModel.defaultPropertyValue(propertyName));
     }
 
     if (Path.class.equals(propertyType)) {
-      applyPathProperty(requestBean, propertyName, commandLine);
+      applyPathProperty(requestModel, propertyName, commandLine);
     } else if (boolean.class.equals(propertyType) || Boolean.class.equals(propertyType)) {
-      applyBooleanSwitchProperty(requestBean, propertyName, commandLine);
+      applyBooleanSwitchProperty(requestModel, propertyName, commandLine);
     } else if (propertyType.isEnum()) {
-      applyEnumTypeProperty(requestBean, propertyName, propertyDescriptor, commandLine);
+      applyEnumTypeProperty(requestModel, propertyName, propertyDescriptor, commandLine);
     } else {
-      BeanUtils.setProperty(
-          requestBean,
-          propertyName,
-          optionValue);
+      requestModel.set(propertyName, optionValue);
     }
   }
 
   private void applyEnumTypeProperty(
-      final T requestBean,
+      final RequestModel<T> requestModel,
       final String propertyName,
       final PropertyDescriptor propertyDescriptor,
       final CommandLine commandLine
@@ -115,33 +91,32 @@ class RequestBeanPopulator<T> {
         .findFirst()
         .orElseThrow(() -> new RuntimeException("Could not resolve enum value"));
 
-    BeanUtils.setProperty(
-        requestBean,
-        propertyName,
-        enumValue);
+    requestModel.set(propertyName, enumValue);
   }
 
   private void applyBooleanSwitchProperty(
-      final T requestObject,
+      final RequestModel<T> requestModel,
       final String propertyName,
       final CommandLine commandLine
   ) throws InvocationTargetException, IllegalAccessException {
 
     boolean hasOption = commandLine.hasOption(propertyName);
-    BeanUtils.setProperty(requestObject, propertyName, hasOption);
+    requestModel.set(propertyName, hasOption);
   }
 
   private void applyPathProperty(
-      final T requestObject,
+      final RequestModel<T> requestModel,
       final String key,
       final CommandLine commandLine
   ) throws IllegalAccessException, InvocationTargetException {
 
     final Path pathProperty = Paths.get(commandLine.getOptionValue(key));
+
     if (!Files.exists(pathProperty)) {
       throw new InvalidCommandLineException(
           String.format("Path \"%s\" must exist", String.valueOf(pathProperty)));
     }
-    BeanUtils.setProperty(requestObject, key, pathProperty);
+
+    requestModel.set(key, pathProperty);
   }
 }
